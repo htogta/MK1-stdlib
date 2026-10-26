@@ -1,0 +1,129 @@
+( subroutines for reading from and writing to disk blocks )
+( REQUIRES basic.mk1 )
+
+[ ( closed at EOF )
+
+[ .disk_block_size
+  #0400
+return ] drp3
+
+[ .disk_base 
+  #fffbc8
+return ] drp3 
+
+[ .disk_had_error 
+  @disk_base call #000005 add3 lod1
+return ] drp3
+
+[ .disk_current
+  @disk_base call #000006 add3
+return ] drp3
+
+[ .disk_update_ptr
+  @disk_base call #000004 add3
+return ] drp3
+
+[ .disk_data_start
+  @disk_base call #00000b add3 
+return ] drp3
+
+[ .disk_capacity ( -- cap4 ) ( # of blocks on system )
+  @disk_base call lod4
+return ] drp3
+
+[ .disk_capacity_bytes ( -- bytes4 ) ( # of bytes on system )
+  @disk_capacity call 
+  #00000400 @mul4 call
+return ] drp3
+
+( copy block at num4 to RAM at data3, err1 is nonzero if something went wrong )
+[ .disk_read ( data3 num4 -- data3 err1 )
+  @disk_current call str4 ( set the disk ptr to num4 )
+
+  ( trigger read )
+  @disk_update_ptr lod1 drp1 
+
+  ( fetch error and store )
+  [ .___disk_read_var_err nop1 ] drp3
+  @disk_had_error call @___disk_read_var_err str1
+
+  [ .___disk_read_var_data3 nop1 nop1 nop1 ] drp3
+  @___disk_read_var_data3 str3
+
+  ( if we had an error earlier just jump to the end )
+  @___disk_read_var_err lod1 @1tobool call
+  [ @___disk_read_end jmp3 ] ?jmp3 drp3
+
+  ( otherwise, we do our read loop )
+  [ .___disk_read_var_i nop1 nop1 ] drp3
+  #0000 @___disk_read_var_i str2
+  
+  [ @___disk_read_var_i lod2 @disk_block_size call @lt2 call return ]
+  [ 
+    ( read disk_data+i )
+    @disk_data_start call #00 @___disk_read_var_i lod2 add3 lod1 
+
+    ( write to data+i )
+    @___disk_read_var_data3 lod3 #00 @___disk_read_var_i lod2 add3 str1
+
+    ( increment i )
+    @___disk_read_var_i lod2 #0001 add2 @___disk_read_var_i str2
+    return 
+  ] 
+  @while call
+  
+  .___disk_read_end
+  @___disk_read_var_data3 lod3
+  @___disk_read_var_err lod1
+return ] drp3
+
+( copy 1024 bytes from RAM at data3 to block at num4, err1 nonzero on error )
+[ .disk_write ( data3 num4 -- err1 ) 
+  @disk_current call str4 ( set the disk ptr to num4 )
+
+  [ .___disk_write_var_data3 nop1 nop1 nop1 ] drp3
+  @___disk_write_var_data3 str3
+
+  [ .___disk_write_var_i nop1 nop1 ] drp3
+  #0000 @___disk_write_var_i str2
+  
+  ( now fill block data buffer )
+  [ @___disk_write_var_i lod2 @disk_block_size call @lt2 call return ]
+  [ 
+    ( write data+i to disk_data+i )
+    @___disk_write_var_data3 lod3 #00 @___disk_write_var_i lod2 add3 lod1
+    @disk_data_start call #00 @___disk_write_var_i lod2 add3 str1
+    
+    ( increment i )
+    @___disk_write_var_i lod2 #0001 add2 @___disk_write_var_i str2
+    return
+  ] @while call
+
+  ( trigger update )
+  #45 @disk_update_ptr str1 ( using 69 because it's funny, any write will do )
+  
+  ( fetch error )
+  @disk_had_error call
+return ] drp3
+
+( clear the data at num4 )
+[ .disk_clear ( num4 -- err1 )
+  [ .___disk_clear_var_i nop1 nop1 ] drp3
+  #0000 @___disk_clear_var_i str2
+
+  [ @___disk_clear_var_i lod2 @disk_block_size call @lt2 call return ]
+  [
+    #00 ( write 0 to disk_data + i )
+    @disk_data_start call #00 @___disk_clear_var_i lod2 add3 str1
+
+    ( increment i )
+    @___disk_clear_var_i lod2 #0001 add2 @___disk_clear_var_i str2
+    return
+  ] @while call
+
+  ( trigger a write )
+  #45 @disk_update_ptr str1
+return ] drp3
+
+
+] drp3 ( opened at start of file )

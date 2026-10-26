@@ -8,7 +8,7 @@ test: build
   @rainbows out.okb
 
 build: clean
-  @cat src/basic.mk1 src/datetime.mk1 src/arith.mk1 src/console.mk1 > std.mk1
+  @cat src/basic.mk1 src/datetime.mk1 src/arith.mk1 src/console.mk1 src/disk.mk1 > std.mk1
 
 clean:
   @rm -f std.mk1
