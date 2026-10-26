@@ -5,8 +5,12 @@
 
 ( device register manipulation )
 
+[ .console_base
+  #ffffef 
+return ] drp3
+
 [ .console_stdin
-  #ffffef ( change if device base address changes )
+  @console_base call
 return ] drp3
 
 [ .console_stdout
@@ -29,9 +33,6 @@ return ] drp3
   @console_stdin call #000005 add3
 return ] drp3
 
-[ .console_base
-  @console_stdin call 
-return ] drp3
 
 ( basic printing )
 

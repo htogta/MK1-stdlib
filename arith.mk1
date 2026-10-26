@@ -5,32 +5,32 @@
 
 ( device register manipulation )
 
-[ .arith_op 
+[ .arith_base ( base address is just the address of the op register ) 
   #ffffd2 ( change if device base address ever changes )
 return ] drp3
 
-[ .arith_base ( base address is just the address of the op register ) 
-  @arith_op call
+[ .arith_op 
+  @arith_base call 
 return ] drp3
 
 [ .arith_width
-  @arith_op call #000001 add3
+  @arith_base call #000001 add3
 return ] drp3
 
 [ .arith_error
-  @arith_op call #000002 add3
+  @arith_base call #000002 add3
 return ] drp3
 
 [ .arith_x 
-  @arith_op call #000003 add3
+  @arith_base call #000003 add3
 return ] drp3
 
 [ .arith_y 
-  @arith_op call #000007 add3
+  @arith_base call #000007 add3
 return ] drp3
 
 [ .arith_result 
-  @arith_op call #00000b add3
+  @arith_base call #00000b add3
 return ] drp3
 
 [ .__arith_op_mul
@@ -46,7 +46,7 @@ return ] drp3
 return ] drp3
 
 [ .__arith_op_none ( useful since it clears the registers )
-  #00 #ffffd2 str1
+  #00 @arith_op call str1
 return ] drp3
 
 [ .__set_arith_input ( x4 y4 width1 -- )
