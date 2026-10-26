@@ -1,5 +1,7 @@
 ( basic helper subroutines )
 
+[ ( closed at end of file )
+
 ( bitwise operations )
 
 [ .bitnot1 ( x1 -- ~x1 )
@@ -320,3 +322,5 @@ if it's true then call body3, check cond3 again, repeat )
   ] jmp3
   .___end_while
 return ] drp3
+
+] drp3

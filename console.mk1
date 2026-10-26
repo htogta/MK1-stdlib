@@ -1,6 +1,8 @@
 ( subroutines for interacting with the console )
 ( REQUIRES basic.mk1, arith.mk1 )
 
+[ ( closed at end of file )
+
 ( device register manipulation )
 
 [ .console_stdin
@@ -141,3 +143,5 @@ return ] drp3
     @var_addr3_printstring_ram str3
   ] jmp3 .endloop_printstring_ram
 return ] drp3
+
+] drp3

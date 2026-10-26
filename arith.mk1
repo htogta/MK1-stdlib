@@ -1,6 +1,8 @@
 ( subroutines for working with the arith device )
 ( REQUIRES basic.mk1 )
 
+[ ( closed at end of file )
+
 ( device register manipulation )
 
 [ .arith_op 
@@ -172,3 +174,5 @@ return ] drp3
 [ .modulo_by_zero
   @arith_had_error call #02 @eq1 call
 return ] drp3
+
+] drp3
