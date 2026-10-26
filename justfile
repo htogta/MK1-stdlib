@@ -3,7 +3,7 @@ set shell := ["bash", "-ic"]
 default: test
 
 test: build
-  @cat std.mk1 main.mk1 > out.mk1
+  @cat main.mk1 std.mk1 > out.mk1
   @mk1 out.mk1
   @rainbows out.okb
 
