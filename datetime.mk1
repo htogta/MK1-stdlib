@@ -1,0 +1,76 @@
+( subroutines for fetching local date/time info )
+( requires BASIC )
+
+[ ( closed at EOF )
+
+( 
+|----------------------|
+|      RbDatetime      |
+|--------+-------------|
+| fffff5 | year        |
+| fffff6 |             |
+|--------+-------------|
+| fffff7 | month       |
+|--------+-------------|
+| fffff8 | day         |
+|--------+-------------|
+| fffff9 | hour        |
+|--------+-------------|
+| fffffa | min         |
+|--------+-------------|
+| fffffb | sec         |
+|--------+-------------|
+| fffffc | dotw        |
+|--------+-------------|
+| fffffd | doty        |
+| fffffe |             |
+|--------+-------------|
+| ffffff | isdst       |
+|--------+-------------|
+ )
+
+[ .datetime_base
+  #fffff5 
+return ] drp3
+
+( rather than just return the device register addresses, 
+  might as well just read them directly )
+
+[ .datetime_year ( -- year2 )
+  @datetime_base call lod2
+return ] drp3
+
+[ .datetime_month ( -- month1 )
+  @datetime_base call #000002 add3 lod1
+return ] drp3
+
+[ .datetime_day ( -- day1 ) ( day of the month )
+  @datetime_base call #000003 add3 lod1
+return ] drp3
+
+[ .datetime_hour ( -- hour1 )
+  @datetime_base call #000004 add3 lod1
+return ] drp3
+
+[ .datetime_minute ( -- min1 )
+  @datetime_base call #000005 add3 lod1
+return ] drp3
+
+[ .datetime_second ( -- sec1 )
+  @datetime_base call #000006 add3 lod1
+return ] drp3
+
+[ .datetime_dotw ( -- dotw1 ) 
+  @datetime_base call #000007 add3 lod1
+return ] drp3
+
+[ .datetime_doty ( -- doty2 )
+  @datetime_base call #000008 add3 lod2
+return ] drp3
+
+[ .datetime_isdst ( -- isdst? ) 
+  @datetime_base call #00000a add3 lod1 
+  @1tobool call ( might as well convert to bool )
+return ] drp3
+
+] drp3 ( opened at start of file )
