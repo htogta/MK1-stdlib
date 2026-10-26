@@ -1,0 +1,13 @@
+MK1 STANDARD LIBRARY
+
+This collection of `.mk1` files provide a basic standard library for programing in [rainbows].
+
+[rainbows]: https://github.com/htogta/rainbows
+
+Simply run `just build` to combine all of the files in this directory into one `std.mk1` file. Then, when you build an assebmly program and run it in [rainbows] using this library, simply do the following:
+
+```
+cat std.mk1 your_program.mk1 > out.mk1
+lua mk1.lua out.mk1
+rainbows out.okb
+```
