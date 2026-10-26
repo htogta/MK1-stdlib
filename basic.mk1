@@ -1,12 +1,81 @@
 ( basic helper subroutines )
 
-( basic math operations )
+( bitwise operations )
+
 [ .bitnot1 ( x1 -- ~x1 )
   #ff xor1
 return ] drp3
 
-[ .neg1 ( x1 -- -x1 )
+[ .bitnot2 ( short -- ~short )
+  #ffff xor2
+return ] drp3
+
+[ .bitnot3 ( addr -- ~addr )
+  #ffffff xor3
+return ] drp3
+
+[ .bitnot4 ( int -- ~int )
+  #ffffffff xor4
+return ] drp3
+
+[ .bitor1 ( a1 b1 -- a1|b1 )
+  @bitnot2 call ( not both bytes at once )
+  and1
+  @bitnot1 call
+return ] drp3
+
+[ .bitor2 ( a2 b2 -- a2|b2 )
+  @bitnot4 call
+  and2
+  @bitnot2 call
+return ] drp3
+
+[ .bitor3 ( a3 b3 -- a3|b3 )
+  @bitnot3 call
+  swp3 @bitnot3 call
+  and3
+  @bitnot3 call
+return ] drp3
+
+[ .bitor4 ( a4 b4 -- a4|b4 )
+  @bitnot4 call
+  swp4 @bitnot4 call
+  and4
+  @bitnot4 call
+return ] drp3
+
+( basic math operations )
+
+[ .neg1 ( byte -- -byte )
   @bitnot1 call #01 add1
+return ] drp3
+
+[ .neg2 ( short -- -short )
+  @bitnot2 call #0001 add2
+return ] drp3
+
+[ .neg3 ( addr -- -addr )
+  @bitnot3 call #000001 add3
+return ] drp3
+
+[ .neg4 ( int -- -int )
+  @bitnot4 call #00000001 add4
+return ] drp3
+
+[ .sub1 ( a1 b1 -- a1-b1 )
+  @neg1 call add1
+return ] drp3
+
+[ .sub2 ( a2 b2 -- a2-b2 )
+  @neg2 call add2
+return ] drp3
+
+[ .sub3 ( a3 b3 -- a3-b3 )
+  @neg3 call add3
+return ] drp3
+
+[ .sub4 ( a4 b4 -- a4-b4 )
+  @neg4 call add4
 return ] drp3
 
 ( comparison helpers )
@@ -27,9 +96,138 @@ return ] drp3
   #01 @eq1 call
 return ] drp3
 
-[ .gt3
+[ .gteq1 ( a1 b1 -- bool )
+  cmp1 ( 0 or 1 if a>=b, ff otherwise )
+  #02 and1 ( 0 if a>=b, 2 otherwise )
+  #02 cmp1 ( ff if a>=b, 0 otherwise )
+return ] drp3
+
+[ .lt1 ( a1 b1 -- bool ) ( ff if a<b, otherwise 00 )
+  @gteq1 call @bitnot1 call
+return ] drp3
+
+[ .lteq1 ( a1 b1 -- bool ) ( ff if a<=b, otherwise 00 )
+  @gt1 call @bitnot1 call
+return ] drp3
+
+[ .neq2 ( a2 b2 -- bool ) ( ff if a!=b, otherwise 00 )
+  cmp2 ( 0 if equal, otherwise 01 or ff )
+  #01 and1 ( 0 if equal, 01 otherwise )
+  @neg1 call ( 0 if equal, ff otherwise )
+return ] drp3
+
+[ .eq2 ( a2 b2 -- bool ) ( ff if a=b, otherwise 00 )
+  @neq2 call
+  @bitnot1 call
+return ] drp3
+
+[ .gt2 ( a2 b2 -- bool ) ( ff if a>b, otherwise 00 )
+  cmp2 ( 1 if a>b, otherwise 00 if a=b or ff if a<b )
+  #01 @eq1 call
+return ] drp3
+
+[ .gteq2 ( a2 b2 -- bool )
+  cmp2 ( 0 or 1 if a>=b, ff otherwise )
+  #02 and1 ( 0 if a>=b, 2 otherwise )
+  #02 cmp1 ( ff if a>=b, 0 otherwise )
+return ] drp3
+
+[ .lt2 ( a2 b2 -- bool ) ( ff if a<b, otherwise 00 )
+  @gteq2 call @bitnot2 call
+return ] drp3
+
+[ .lteq2 ( a2 b2 -- bool ) ( ff if a<=b, otherwise 00 )
+  @gt2 call @bitnot1 call
+return ] drp3
+
+[ .neq3 ( a3 b3 -- bool ) ( ff if a!=b, otherwise 00 )
+  cmp3 ( 0 if equal, otherwise 01 or ff )
+  #01 and1 ( 0 if equal, 01 otherwise )
+  @neg1 call ( 0 if equal, ff otherwise )
+return ] drp3
+
+[ .eq3 ( a3 b3 -- bool ) ( ff if a=b, otherwise 00 )
+  @neq3 call
+  @bitnot1 call
+return ] drp3
+
+[ .gt3 ( a3 b3 -- bool ) ( ff if a>b, otherwise 00 )
   cmp3 ( 1 if a>b, otherwise 00 if a=b or ff if a<b )
   #01 @eq1 call
+return ] drp3
+
+[ .gteq3 ( a3 b3 -- bool )
+  cmp3 ( 0 or 1 if a>=b, ff otherwise )
+  #02 and1 ( 0 if a>=b, 2 otherwise )
+  #02 cmp1 ( ff if a>=b, 0 otherwise )
+return ] drp3
+
+[ .lt3 ( a3 b3 -- bool ) ( ff if a<b, otherwise 00 )
+  @gteq3 call @bitnot1 call
+return ] drp3
+
+[ .lteq3 ( a3 b3 -- bool ) ( ff if a<=b, otherwise 00 )
+  @gt3 call @bitnot1 call
+return ] drp3
+
+[ .neq4 ( a4 b4 -- bool ) ( ff if a!=b, otherwise 00 )
+  cmp4 ( 0 if equal, otherwise 01 or ff )
+  #01 and1 ( 0 if equal, 01 otherwise )
+  @neg1 call ( 0 if equal, ff otherwise )
+return ] drp3
+
+[ .eq4 ( a4 b4 -- bool ) ( ff if a=b, otherwise 00 )
+  @neq4 call
+  @bitnot1 call
+return ] drp3
+
+[ .gt4 ( a4 b4 -- bool ) ( ff if a>b, otherwise 00 )
+  cmp4 ( 1 if a>b, otherwise 00 if a=b or ff if a<b )
+  #01 @eq1 call
+return ] drp3
+
+[ .gteq4 ( a4 b4 -- bool )
+  cmp4 ( 0 or 1 if a>=b, ff otherwise )
+  #02 and1 ( 0 if a>=b, 2 otherwise )
+  #02 cmp1 ( ff if a>=b, 0 otherwise )
+return ] drp3
+
+[ .lt4 ( a4 b4 -- bool ) ( ff if a<b, otherwise 00 )
+  @gteq4 call @bitnot1 call
+return ] drp3
+
+[ .lteq4 ( a4 b4 -- bool ) ( ff if a<=b, otherwise 00 )
+  @gt4 call @bitnot1 call
+return ] drp3
+
+( boolean operations )
+
+[ .1tobool ( n1 -- bool ) ( if byte is nonzero, push ff, else 00 )
+  #00 @neq1 call
+return ] drp3
+
+[ .2tobool ( n2 -- bool ) ( if short is nonzero, push ff )
+  #0000 @neq2 call
+return ] drp3
+
+[ .3tobool ( n3 -- bool )
+  #000000 @neq3 call
+return ] drp3
+
+[ .4tobool ( n4 -- bool )
+  #00000000 @neq4 call
+return ] drp3
+
+[ .booland ( bool bool -- bool )
+  and1
+return ] drp3
+
+[ .boolor ( bool bool -- bool )
+  @bitor1 call
+return ] drp3
+
+[ .boolnot ( bool -- bool )
+  @bitnot1 call
 return ] drp3
 
 ( converting between different integer widths )
@@ -68,4 +266,57 @@ return ] drp3
 
 [ .4to3
   psh3 drp1 pop3
+return ] drp3
+
+( control flow helpers )
+
+[ .which1 ( bool t1 f1 -- x1 ) ( x=t if bool is true, otherwise x=f )
+  ?swp1 swp1 drp1
+return ] drp3
+
+[ .which2 ( bool t2 f2 -- x2 )
+  ?swp2 swp2 drp2
+return ] drp3
+
+[ .which3 ( bool t3 f3 -- x3 )
+  ?swp3 swp3 drp3
+return ] drp3
+
+[ .which4 ( bool t4 f4 -- x4 )
+  ?swp4 swp4 drp4
+return ] drp3
+
+( call trueaddr if bool, otherwise call falseaddr )
+.choose ( ... bool1 trueaddr3 falseaddr3 -- ... )
+  @which3 call call
+  return
+
+( jump to true3 if bool, otherwise jump to false3 )
+[ .choosejmp ( ... bool1 true3 false3 )
+  @which3 call jmp3
+return ] drp3
+
+( call sub if bool, otherwise continue onwards )
+[ .if ( ... bool1 sub3 -- ... )
+  psh3
+  @boolnot call
+  @___if_end ?jmp3
+    drp3 pop3 call
+    return
+  .___if_end
+    pop3 drp3
+return ] drp3
+
+( call cond3 which pushes a bool, 
+if it's true then call body3, check cond3 again, repeat )
+[ .while ( ... cond3 body3 -- ... )
+  ( storing cond3 and body3 as variables )
+  [ .___while_body nop1 nop1 nop1 ] drp3 @___while_body str3
+  [ .___while_cond nop1 nop1 nop1 ] drp3 @___while_cond str3
+  
+  [ ( this is basically a "while cond do body" loop ) 
+    @___while_cond lod3 call @boolnot call @___end_while ?jmp3 drp3 
+    @___while_body lod3 call
+  ] jmp3
+  .___end_while
 return ] drp3
