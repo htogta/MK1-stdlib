@@ -1,0 +1,143 @@
+( subroutines for interacting with the console )
+( REQUIRES basic.mk1, arith.mk1 )
+
+( device register manipulation )
+
+[ .console_stdin
+  #ffffef ( change if device base address changes )
+return ] drp3
+
+[ .console_stdout
+  @console_stdin call #000001 add3
+return ] drp3
+
+[ .console_argc
+  @console_stdin call #000002 add3
+return ] drp3
+
+[ .console_arg_index
+  @console_stdin call #000003 add3
+return ] drp3
+
+[ .console_arg_char_i
+  @console_stdin call #000004 add3
+return ] drp3
+
+[ .console_arg_char
+  @console_stdin call #000005 add3
+return ] drp3
+
+[ .console_base
+  @console_stdin call 
+return ] drp3
+
+( basic printing )
+
+[ .putchar ( c1 -- )
+  @console_stdout call str1
+return ] drp3
+
+[ .printdec1 ( n1 -- )
+  ( place to store the byte )
+  [ .var_printdec_n nop1 ] drp3
+  @var_printdec_n str1
+  
+  ( 3-bytes of buffer for storing characters )
+  [ .var_printdec_buf3 nop1 nop1 nop1 ] drp3
+
+  ( counter for the loop )
+  [ .var_printdec_counter nop1 nop1 nop1 ] drp3
+  #000000 @var_printdec_counter str3
+  
+  [ ( do-while loop: )
+    ( buf[counter++] = '0' + n % 10 )
+    ( '0' @n lod 10 % + )
+    #30 @var_printdec_n lod1 #0a @mod1 call add1
+    @var_printdec_buf3 @var_printdec_counter lod3 add3 str1
+    @var_printdec_counter lod3 #000001 add3 @var_printdec_counter str3
+    ( n = n / 10 )
+    @var_printdec_n lod1 #0a @div1 call @var_printdec_n str1
+    ( while n > 0 )
+    @var_printdec_n lod1 #00 @gt1 call #ff xor1 @endloop_do_printdec1 ?jmp3 drp3 
+  ] jmp3
+  .endloop_do_printdec1
+  
+  [ 
+    @var_printdec_counter lod3 #000000 @gt3 call #ff xor1
+    @endloop_printdec1 ?jmp3 drp3 
+    
+    ( buf[--i] )
+    @var_printdec_counter lod3 #ffffff add3 @var_printdec_counter str3
+    @var_printdec_counter lod3 @var_printdec_buf3 add3 lod1
+    @putchar call
+  ] jmp3
+  .endloop_printdec1 
+return ] drp3
+
+[ .printhex1 ( n1 -- )
+  dup1
+
+  ( high nibble )
+  #04 shf1 #30 add1
+  dup1 #39 @gt1 call [ #07 add1 @endif1_printhex1 jmp3 ] ?jmp3 drp3
+  .endif1_printhex1
+  @putchar call
+
+  ( low nibble )
+  #0f and1 #30 add1
+  dup1 #39 @gt1 call [ #07 add1 @endif2_printhex1 jmp3 ] ?jmp3 drp3
+  .endif2_printhex1
+  @putchar call
+return ] drp3 
+
+[ .printhex2 ( n2 -- )
+  psh1
+  @printhex1 call
+  pop1 
+  @printhex1 call
+return ] drp3 
+
+[ .printhex3 ( n3 -- )
+  psh2 @printhex1 call
+  pop2 @printhex2 call
+return ] drp3
+
+[ .printhex4 ( n4 -- )
+  psh2 @printhex2 call
+  pop2 @printhex2 call
+return ] drp3
+
+[ .printstring_rom ( addr3 -- )
+  [ .var_addr3_printstring_rom nop1 nop1 nop1 ] drp3
+  @var_addr3_printstring_rom str3 ( store address to variable )
+  
+  [ ( loop: )
+    ( check if current char is 0 )
+    @var_addr3_printstring_rom lod3 fet1 #00 @eq1 call
+    @endloop_printstring_rom ?jmp3 drp3 
+    ( loop body: )
+    @var_addr3_printstring_rom lod3 fet1 @putchar call ( print char )
+
+    ( increment address )
+    @var_addr3_printstring_rom lod3 #000001 add3 
+    @var_addr3_printstring_rom str3
+  ] jmp3 .endloop_printstring_rom
+    
+return ] drp3
+
+[ .printstring_ram ( addr3 -- )
+  [ .var_addr3_printstring_ram nop1 nop1 nop1 ] drp3
+  @var_addr3_printstring_ram str3 ( store address to variable )
+  
+  [ ( loop: )
+    ( check if current char is 0 )
+    @var_addr3_printstring_ram lod3 lod1 #00 @eq1 call
+    @endloop_printstring_ram ?jmp3 drp3 
+    ( loop body: )
+    @var_addr3_printstring_ram lod3 lod1 @putchar call ( print char )
+
+    ( increment address )
+    @var_addr3_printstring_ram lod3 #000001 add3 
+    @var_addr3_printstring_ram str3
+  ] jmp3 .endloop_printstring_ram
+return ] drp3

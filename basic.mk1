@@ -1,0 +1,71 @@
+( basic helper subroutines )
+
+( basic math operations )
+[ .bitnot1 ( x1 -- ~x1 )
+  #ff xor1
+return ] drp3
+
+[ .neg1 ( x1 -- -x1 )
+  @bitnot1 call #01 add1
+return ] drp3
+
+( comparison helpers )
+
+[ .neq1 ( a1 b1 -- a!=b1 ) ( 0 if a=b, ff otherwise )
+  cmp1 ( 0 if equal, otherwise 01 or ff )
+  #01 and1 ( 0 if equal, 01 otherwise )
+  @neg1 call ( 0 if equal, ff otherwise )
+return ] drp3
+
+[ .eq1 ( a1 b1 -- a=b1 ) ( ff if a=b, 0 otherwise )
+  @neq1 call
+  @bitnot1 call
+return ] drp3
+
+[ .gt1 ( a1 b1 -- a>b1 )
+  cmp1 ( 1 if a>b, otherwise 00 if a=b or ff if a<b )
+  #01 @eq1 call
+return ] drp3
+
+[ .gt3
+  cmp3 ( 1 if a>b, otherwise 00 if a=b or ff if a<b )
+  #01 @eq1 call
+return ] drp3
+
+( converting between different integer widths )
+
+[ .1to4 ( x1 -- x4 )
+  psh1 #000000 pop1
+return ] drp3
+
+[ .1to4_signed
+  psh1 #ffffff pop1
+return ] drp3
+
+[ .2to4 ( x2 -- x4 )
+  #0000 swp2
+return ] drp3
+
+[ .2to4_signed
+  #ffff swp2
+return ] drp3
+
+[ .3to4 ( x3 -- x4 )
+  psh3 #00 pop3
+return ] drp3
+
+[ .3to4_signed
+  psh3 #ff pop3
+return ] drp3
+
+[ .4to1 
+  psh1 drp3 pop1
+return ] drp3
+
+[ .4to2
+  swp2 drp2 ( note- identical to nip2 )
+return ] drp3
+
+[ .4to3
+  psh3 drp1 pop3
+return ] drp3

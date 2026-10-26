@@ -1,0 +1,174 @@
+( subroutines for working with the arith device )
+( REQUIRES basic.mk1 )
+
+( device register manipulation )
+
+[ .arith_op 
+  #ffffd2 ( change if device base address ever changes )
+return ] drp3
+
+[ .arith_base ( base address is just the address of the op register ) 
+  @arith_op call
+return ] drp3
+
+[ .arith_width
+  @arith_op call #000001 add3
+return ] drp3
+
+[ .arith_error
+  @arith_op call #000002 add3
+return ] drp3
+
+[ .arith_x 
+  @arith_op call #000003 add3
+return ] drp3
+
+[ .arith_y 
+  @arith_op call #000007 add3
+return ] drp3
+
+[ .arith_result 
+  @arith_op call #00000b add3
+return ] drp3
+
+[ .__arith_op_mul
+  #01 @arith_op call str1
+return ] drp3
+
+[ .__arith_op_div
+  #02 @arith_op call str1
+return ] drp3
+
+[ .__arith_op_mod
+  #03 @arith_op call str1
+return ] drp3
+
+[ .__arith_op_none ( useful since it clears the registers )
+  #00 #ffffd2 str1
+return ] drp3
+
+[ .__set_arith_input ( x4 y4 width1 -- )
+  @arith_width call str1 ( store the width )
+  @arith_y call str4 ( store y )
+  @arith_x call str4 ( store x )
+return ] drp3
+
+[ .__arith_get_result ( -- result4 )
+  @arith_result call lod4
+return ] drp3
+
+[ .arith_had_error ( -- err1 )
+  @arith_error call lod1
+return ] drp3
+
+( math subroutines )
+
+[ .__do_op_W ( x4 y4 width1 op1 -- result4 )
+  psh1
+  @__set_arith_input call
+  pop1 
+  @arith_op call str1 ( op gets ran here )
+  @__arith_get_result call
+return ] drp3
+
+[ .mul1 ( x1 y1 -- x*y1 )
+  ( convert x and y to 4-byte values )
+  @1to4 call
+  psh4
+  @1to4 call
+  pop4
+  #00 #01 @__do_op_W call
+  @4to1 call
+return ] drp3
+
+[ .mul2
+  @2to4 call
+  psh4
+  @2to4 call
+  pop4
+  #01 #01 @__do_op_W call
+  @4to2 call
+return ] drp3
+
+[ .mul3
+  @3to4 call
+  psh4
+  @3to4 call
+  pop4
+  #02 #01 @__do_op_W call
+  @4to3 call
+return ] drp3
+
+[ .mul4
+  #03 #01 @__do_op_W call
+return ] drp3
+
+[ .div1 ( x1 y1 -- x/y1 )
+  @1to4 call
+  psh4
+  @1to4 call
+  pop4
+  #00 #02 @__do_op_W call
+  @4to1 call
+return ] drp3
+
+[ .div2
+  @2to4 call
+  psh4
+  @2to4 call
+  pop4
+  #01 #02 @__do_op_W call
+  @4to2 call
+return ] drp3
+
+[ .div3
+  @3to4 call
+  psh4
+  @3to4 call
+  pop4
+  #02 #02 @__do_op_W call
+  @4to3 call
+return ] drp3
+
+[ .div4
+  #03 #02 @__do_op_W call
+return ] drp3
+
+[ .mod1 ( x1 y1 -- x%y1 )
+  @1to4 call
+  psh4
+  @1to4 call
+  pop4
+  #00 #03 @__do_op_W call
+  @4to1 call
+return ] drp3
+
+[ .mod2
+  @2to4 call
+  psh4
+  @2to4 call
+  pop4
+  #01 #03 @__do_op_W call
+  @4to2 call
+return ] drp3
+
+[ .mod3
+  @3to4 call
+  psh4
+  @3to4 call
+  pop4
+  #02 #03 @__do_op_W call
+  @4to3 call
+return ] drp3
+
+[ .mod4
+  #03 #03 @__do_op_W call
+return ] drp3
+
+[ .divide_by_zero
+  @arith_had_error call #01 @eq1 call
+return ] drp3
+
+[ .modulo_by_zero
+  @arith_had_error call #02 @eq1 call
+return ] drp3

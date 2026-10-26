@@ -1,3 +1,9 @@
-*.okb # ignore ok binaries
-out.mk1 # generated file only used for testing
+# ignore ok binaries
+*.okb 
+
+# generated file only used for testing
+out.mk1 
+
+# also used for testing
+main.mk1
 std.mk1
