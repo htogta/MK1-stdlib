@@ -1,0 +1,166 @@
+( subroutines for working with 32-bit floating point values )
+( REQUIRES basic.mk1 )
+
+[ ( closed at EOF )
+
+[ .float_base
+  #ffffe1 ( change if needed ) 
+return ] drp3
+
+[ .float_op
+  @float_base call
+return ] drp3
+
+[ .float_had_error
+  @float_base call #000001 add3 lod1
+return ] drp3
+
+[ .float_x
+  @float_base call #000002 add3
+return ] drp3
+
+[ .float_y
+  @float_base call #000006 add3 
+return ] drp3
+
+[ .float_result
+  @float_base call #00000a add3 
+return ] drp3
+
+( r4 can be a float )
+[ .__float_get_result ( -- r4 )
+  @float_result call lod4
+return ] drp3
+
+( x and y can be floats or just bits )
+[ .__float_set_input ( x4 y4 -- )
+  @float_y call str4
+  @float_x call str4
+return ] drp3
+
+( float math operations )
+
+[ .addf ( xf yf -- x+yf )
+  @__float_set_input call
+  #01 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+[ .subf ( xf yf -- x-yf )
+  @__float_set_input call
+  #02 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+[ .mulf ( xf yf -- x*yf )
+  @__float_set_input call
+  #03 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+[ .divf ( xf yf -- x/yf )
+  @__float_set_input call
+  #04 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+[ .floor ( xf -- floor_xf )
+  @float_x call str4
+  #05 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+[ .ceil ( xf -- ceil_xf )
+  @float_x call str4
+  #06 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+( cast operations )
+
+[ .floatto4 ( xf -- x4 )
+  @float_x call str4
+  #08 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+[ .floatto3 ( xf -- x3 )
+  @floatto4 call
+  @4to3 call
+return ] drp3
+
+[ .floatto2 ( xf -- x2 )
+  @floatto4 call
+  @4to2 call
+return ] drp3
+
+[ .floatto1 ( xf -- x1 )
+  @floatto4 call
+  @4to1 call
+return ] drp3
+
+( these convert an int to a float, the ones ending in _signed assume the int 
+  is signed rather than unsigned )
+[ .1tofloat ( x1 -- xf )
+  @1to4 call
+  @4tofloat call
+return ] drp3
+
+[ .1tofloat_signed
+  @1to4_signed call
+  @4tofloat_signed call
+return ] drp3
+
+[ .2tofloat
+  @2to4 call
+  @4tofloat call
+return ] drp3
+
+[ .2tofloat_signed
+  @2to4_signed call
+  @4tofloat_signed call
+return ] drp3
+
+[ .3tofloat
+  @3to4 call
+  @4tofloat call
+return ] drp3
+
+[ .3tofloat_signed
+  @3to4_signed call
+  @4tofloat_signed call
+return ] drp3
+
+( NOTE as far as I'm aware, rainbows' float device treats all 32-bit
+  int input values as unsigned when casting to float )
+
+[ .4tofloat ( x4 -- xf )
+  @float_x call str4
+  #07 @float_op call str1
+  @__float_get_result call
+return ] drp3
+
+[ .4tofloat_signed ( x4 -- xf )
+  ( if it's negative, make it positive before casting, 
+    then multiply output by -1 as a float )
+  [ .___was_neg nop1 ] drp3
+  #00 @___was_neg str1 ( boolean flag for storing if it was really negative )
+
+  ( check it's negative, i.e. last bit 1 )
+  dup4 #80000000 and4 #00000000 @neq4 call [ 
+    ( then negate to make it positive, NOTE may overflow )
+    @neg4 call
+    #ff @___was_neg str1
+  #00 ] ?jmp3 drp3
+
+  ( now store and convert like normal )
+  @4tofloat call
+
+  ( if it was negative earlier, multiply by -1.0 )
+  @___was_neg lod1 [
+    #bf800000 ( negative 1 float constant )
+    @mulf call
+  #00 ] ?jmp3 drp3
+return ] drp3
+
+] drp3 ( opened at start of file )
