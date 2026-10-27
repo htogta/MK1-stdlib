@@ -323,4 +323,51 @@ if it's true then call body3, check cond3 again, repeat )
   .___end_while
 return ] drp3
 
-] drp3
+( useful basic memory operations )
+
+[ .memcpy ( dest3 src3 size3 -- )
+  [ .___memcpy_size3 nop1 nop1 nop1 ] drp3
+  @___memcpy_size3 str3
+  
+  [ .___memcpy_src3 nop1 nop1 nop1 ] drp3
+  @___memcpy_src3 str3
+  
+  [ .___memcpy_dest3 nop1 nop1 nop1 ] drp3
+  @___memcpy_dest3 str3
+
+  [ .___memcpy_i3 nop1 nop1 nop1 ] drp3
+  #000000 @___memcpy_i3 str3
+
+  [ @___memcpy_i3 lod3 @___memcpy_size3 lod3 @lt3 call return ]
+  [
+    @___memcpy_src3 lod3 @___memcpy_i3 lod3 add3 lod1
+    @___memcpy_dest3 lod3 @___memcpy_i3 lod3 add3 str1
+    @___memcpy_i3 lod3 #000001 add3 @___memcpy_i3 str3
+  return ] @while call
+return ] drp3
+
+( same as above, but src3 is an array in ROM )
+[ .memcpy_rom ( dest3 src3 size3 -- )
+  [ .___memcpy_rom_size3 nop1 nop1 nop1 ] drp3
+  @___memcpy_rom_size3 str3
+  
+  [ .___memcpy_rom_src3 nop1 nop1 nop1 ] drp3
+  @___memcpy_rom_src3 str3
+  
+  [ .___memcpy_rom_dest3 nop1 nop1 nop1 ] drp3
+  @___memcpy_rom_dest3 str3
+
+  [ .___memcpy_rom_i3 nop1 nop1 nop1 ] drp3
+  #000000 @___memcpy_rom_i3 str3
+
+  [ @___memcpy_rom_i3 lod3 @___memcpy_rom_size3 lod3 @lt3 call return ]
+  [
+    ( only difference between this and memcpy is it uses fet1 instead of lod1 )
+    @___memcpy_rom_src3 lod3 @___memcpy_rom_i3 lod3 add3 fet1
+    @___memcpy_rom_dest3 lod3 @___memcpy_rom_i3 lod3 add3 str1
+    @___memcpy_rom_i3 lod3 #000001 add3 @___memcpy_rom_i3 str3
+  return ] @while call
+return ] drp3
+
+
+] drp3 ( opened at start of file )
