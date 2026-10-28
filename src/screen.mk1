@@ -237,7 +237,12 @@ return ] drp3
   #03 @screen_draw_op call str1
 return ] drp3
 
-( TODO no resizing for now )
+( NOTE I wouldn't recommend relying on this functionality )
+[ .screen_resize ( w2 h2 -- )
+  @screen_height_ptr call str2
+  @screen_width_ptr call str2
+  #04 @screen_draw_op call str1
+return ] drp3
 
 ( useful color constants )
 [ .COLOR_RED ( -- r2 )
