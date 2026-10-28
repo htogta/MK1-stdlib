@@ -1,0 +1,275 @@
+( subroutines for drawing to the screen )
+
+[ ( closed at EOF )
+
+( screen register manipulation )
+
+[ .screen_base
+  #fff9b5
+return ] drp3
+
+[ .screen_width_ptr
+  @screen_base call
+return ] drp3
+
+[ .screen_height_ptr
+  @screen_base call #000002 add3
+return ] drp3
+
+[ .screen_width ( -- w2 )
+  @screen_width_ptr call lod2
+return ] drp3
+
+[ .screen_height ( -- h2 )
+  @screen_height_ptr call lod2
+return ] drp3
+
+[ .screen_draw_op
+  @screen_base call #000004 add3
+return ] drp3
+
+[ .screen_op_amt_x
+  @screen_base call #000005 add3 
+return ] drp3
+
+[ .screen_op_amt_y
+  @screen_base call #000007 add3
+return ] drp3
+
+[ .screen_x
+  @screen_base call #000009 add3
+return ] drp3
+
+[ .screen_y
+  @screen_base call #00000b add3
+return ] drp3
+
+[ .screen_trans_color
+  @screen_base call #00000d add3
+return ] drp3
+
+[ .screen_pixel
+  @screen_base call #00000f add3
+return ] drp3
+
+( grab the frame counter value, useful for checking if you're on a new frame )
+[ .screen_frame_counter ( -- f1 )
+  @screen_base call #000011 add3 
+  lod1
+return ] drp3
+
+( since this is just a constant, might as well return the value in RAM ) 
+[ .screen_depth ( -- d1 )
+  @screen_base call #000012 add3 
+  lod1
+return ] drp3
+
+[ .screen_sprite ( -- data3 ) ( address of the sprite data )
+  @screen_base call #000013 add3
+return ] drp3
+
+( for loading a sprite to screen_sprite from RAM )
+( data3 should be an array of 2-byte color values )
+[ .load_screen_sprite_ram ( data3 w2 h2 -- )
+  ( storing height, clamped to 16 )
+  [ .___load_sprite_ram_rows nop1 nop1 ] drp3
+  @___load_sprite_ram_rows str2
+  @___load_sprite_ram_rows lod2 #0010 @gteq2 call
+  [ #0010 @___load_sprite_ram_rows str2 #00 ] ?jmp3 drp3
+  
+  ( storing the original width, NOT clamped, in "width" )
+  [ .___load_sprite_ram_width nop1 nop1 ] drp3
+  dup2 ( so we can use it again to store it clamped later )
+  @___load_sprite_rom_width str2
+  
+  ( width, but clamped )
+  [ .___load_sprite_ram_cols nop1 nop1 ] drp3
+  @___load_sprite_ram_cols str2
+
+  @___load_sprite_ram_cols lod2 #0010 @gteq2 call
+  [ #0010 @___load_sprite_ram_cols str2 return ]
+  [ nop1 return ]
+  @choose call
+  
+  [ .___load_sprite_ram_data nop1 nop1 nop1 ] drp3
+  @___load_sprite_ram_data str3
+  
+  ( initializing counter for the loop )
+  [ .___load_sprite_ram_y nop1 nop1 ] drp3
+  #0000 @___load_sprite_ram_y str2
+  
+  [ 
+    @___load_sprite_ram_y lod2 @___load_sprite_ram_rows lod2 @lt2 call
+  return ]
+  [ 
+    #00 @___load_sprite_ram_y lod2
+    #00 @___load_sprite_ram_width lod2 
+    @mul3 call
+    #000002 @mul3 call 
+    dup3 psh3
+    @screen_sprite call 
+    add3
+    
+    pop3 
+    @___load_sprite_ram_data lod3 
+    add3 
+    
+    #00 @___load_sprite_ram_cols lod2 #000002 @mul3 call 
+    @memcpy call
+
+    @___load_sprite_ram_y lod2 #0001 add2 @___load_sprite_ram_y str2
+  return ] @while call
+return ] drp3
+
+( same as above but from ROM )
+[ .load_screen_sprite_rom ( data3 w2 h2 -- )
+  ( storing height, clamped to 16 )
+  [ .___load_sprite_rom_rows nop1 nop1 ] drp3
+  @___load_sprite_rom_rows str2
+  @___load_sprite_rom_rows lod2 #0010 @gteq2 call
+  [ #0010 @___load_sprite_rom_rows str2 #00 ] ?jmp3 drp3
+  
+  ( storing the original width, NOT clamped, in "width" )
+  [ .___load_sprite_rom_width nop1 nop1 ] drp3
+  dup2 ( so we can use it again to store it clamped later )
+  @___load_sprite_rom_width str2
+  
+  ( width, but clamped )
+  [ .___load_sprite_rom_cols nop1 nop1 ] drp3
+  @___load_sprite_rom_cols str2
+
+  @___load_sprite_rom_cols lod2 #0010 @gteq2 call
+  [ #0010 @___load_sprite_rom_cols str2 return ]
+  [ nop1 return ]
+  @choose call
+  
+  [ .___load_sprite_rom_data nop1 nop1 nop1 ] drp3
+  @___load_sprite_rom_data str3
+  
+  ( initializing counter for the loop )
+  [ .___load_sprite_rom_y nop1 nop1 ] drp3
+  #0000 @___load_sprite_rom_y str2
+  
+  [ 
+    @___load_sprite_rom_y lod2 @___load_sprite_rom_rows lod2 @lt2 call
+  return ]
+  [ 
+    #00 @___load_sprite_rom_y lod2
+    #00 @___load_sprite_rom_width lod2 
+    @mul3 call
+    #000002 @mul3 call
+    dup3 psh3
+    @screen_sprite call 
+    add3
+    
+    pop3 
+    @___load_sprite_rom_data lod3 
+    add3 
+    
+    #00 @___load_sprite_rom_cols lod2 #000002 @mul3 call 
+    @memcpy_rom call
+
+    @___load_sprite_rom_y lod2 #0001 add2 @___load_sprite_rom_y str2
+  return ] @while call
+return ] drp3
+
+( this one takes a bool, if it's true it'll load from ROM instead of RAM )
+[ .load_screen_sprite ( fromrom? data3 w2 h2 -- )
+  psh2 psh2 psh3 ( stashing other args for now )
+  
+  [ ( if fromrom? is true, load from ROM )
+    pop3 pop2 pop2 @load_screen_sprite_rom call
+    @___load_screen_sprite_endif jmp3 
+  ] ?jmp3 drp3
+    pop3 pop2 pop2 @load_screen_sprite_ram call
+  .___load_screen_sprite_endif
+return ] drp3
+
+( here's the actual drawing functions: )
+
+( get the color at a given pixel )
+[ .color_at ( x2 y2 -- c2 )
+  @screen_y call str2
+  @screen_x call str2
+  @screen_pixel call lod2
+return ] drp3
+
+( fill a rectangle of color c2, width w2, height h2 at coords x2, y2 )
+[ .draw_fill ( c2 w2 h2 x2 y2 -- )
+  @screen_y call str2
+  @screen_x call str2
+  @screen_op_amt_y call str2
+  @screen_op_amt_x call str2
+  @screen_trans_color call str2
+  #01 @screen_draw_op call str1
+return ] drp3
+
+( draws a sprite at data3 of width w2, height h2 at coords x2, y2 )
+( sprite is assumed to be in rom if fromrom? is true )
+[ .draw_sprite ( fromrom? data3 w2 h2 x2 y2 -- )
+  @screen_y call str2
+  @screen_x call str2
+  
+  @screen_op_amt_y call str2
+  @screen_op_amt_x call str2
+  
+  @screen_op_amt_x call lod2 
+  @screen_op_amt_y call lod2
+  
+  @load_screen_sprite call
+  #02 @screen_draw_op call str1
+return ] drp3
+
+( same as above, but the color trans2 in the sprite is treated as transparent )
+[ .draw_sprite_transparent ( fromrom? data3 w2 h2 x2 y2 trans2 -- )
+  @screen_trans_color call str2
+
+  @screen_y call str2
+  @screen_x call str2
+
+  @screen_op_amt_y call str2
+  @screen_op_amt_x call str2
+
+  @screen_op_amt_x call lod2 
+  @screen_op_amt_y call lod2
+  
+  @load_screen_sprite call
+  #03 @screen_draw_op call str1
+return ] drp3
+
+( TODO no resizing for now )
+
+( useful color constants )
+[ .COLOR_RED ( -- r2 )
+  #f800
+return ] drp3
+
+[ .COLOR_GREEN ( -- g2 )
+  #07e0
+return ] drp3
+
+[ .COLOR_BLUE ( -- b2 )
+  #001f
+return ] drp3
+
+[ .COLOR_WHITE ( -- w2 )
+  #ffff
+return ] drp3
+
+[ .COLOR_BLACK ( -- k2 )
+  #0000
+return ] drp3
+
+[ .COLOR_YELLOW
+  #ffe0
+return ] drp3
+
+[ .COLOR_CYAN
+  #07ff
+return ] drp3
+
+[ .COLOR_MAGENTA
+  #f81f
+return ] drp3
+
+] drp3 ( opened at start of file )
