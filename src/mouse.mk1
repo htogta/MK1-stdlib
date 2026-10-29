@@ -1,0 +1,91 @@
+( subroutines for getting mouse input )
+
+[ ( closed at EOF )
+
+[ .mouse_base
+  #fff9a9 ( change if needed )
+return ] drp3
+
+[ .mouse_x ( reads the mouse x coord )
+  @mouse_base call lod2
+return ] drp3
+
+[ .mouse_y ( reads the mouse y coord )
+  @mouse_base call #000002 add3 lod2
+return ] drp3
+
+[ .___mouse_button_isdown
+  @mouse_base call #000004 add3 lod1 
+return ] drp3
+
+[ .___mouse_button_justpressed
+  @mouse_base call #000005 add3 lod1 
+return ] drp3
+
+[ .___mouse_button_justreleased
+  @mouse_base call #000006 add3 lod1 
+return ] drp3
+
+[ .mouse_scroll_x ( reads the change in scroll_x )
+  @mouse_base call #000007 add3 lod1 
+return ] drp3
+
+[ .mouse_scroll_y ( reads the change in scroll_y this frame )
+  @mouse_base call #000008 add3 lod1 
+return ] drp3
+
+[ .mouse_left_isdown
+  @___mouse_button_isdown call
+  #01 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_left_justpressed
+  @___mouse_button_justpressed call
+  #01 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_left_justreleased
+  @___mouse_button_justreleased call
+  #01 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_right_isdown
+  @___mouse_button_isdown call
+  #02 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_right_justpressed
+  @___mouse_button_justpressed call
+  #02 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_right_justreleased
+  @___mouse_button_justreleased call
+  #02 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_middle_isdown
+  @___mouse_button_isdown call
+  #04 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_middle_justpressed
+  @___mouse_button_justpressed call
+  #04 and1 
+  @1tobool call
+return ] drp3
+
+[ .mouse_middle_justreleased
+  @___mouse_button_justreleased call
+  #04 and1 
+  @1tobool call
+return ] drp3
+
+] drp3 ( opened at beginning of file )
