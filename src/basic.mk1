@@ -376,5 +376,65 @@ return ] drp3
   return ] @while call
 return ] drp3
 
+( these make it easy to use the same memory operations on both RAM
+  and ROM ) 
+
+( get: if isrom? fetch from addr3, else load from addr3 )
+[ .get1 ( isrom? addr3 -- x1 )
+  psh3
+  [ pop3 fet1 @___endif_get1 jmp3 ] ?jmp3 drp3
+  pop3 lod1
+  .___endif_get1
+return ] drp3
+
+[ .get2 ( isrom? addr3 -- x2 )
+  psh3
+  [ pop3 fet2 @___endif_get2 jmp3 ] ?jmp3 drp3
+  pop3 lod2
+  .___endif_get2
+return ] drp3
+
+[ .get3 ( isrom? addr3 -- x1 )
+  psh3
+  [ pop3 fet3 @___endif_get3 jmp3 ] ?jmp3 drp3
+  pop3 lod3
+  .___endif_get3
+return ] drp3
+
+[ .get4 ( isrom? addr3 -- x1 )
+  psh3
+  [ pop3 fet4 @___endif_get4 jmp3 ] ?jmp3 drp3
+  pop3 lod4
+  .___endif_get4
+return ] drp3
+
+( set: if isrom? drp, else fetch from addr3 )
+[ .set1 ( val1 isrom? addr3 -- )
+  psh3
+  [ pop3 drp3 drp1 @___endif_set1 jmp3 ] ?jmp3 drp3
+  pop3 str1
+  .___endif_set1
+return ] drp3
+
+[ .set2 ( val2 isrom? addr3 -- )
+  psh3
+  [ pop3 drp3 drp2 @___endif_set2 jmp3 ] ?jmp3 drp3
+  pop3 str2
+  .___endif_set2
+return ] drp3
+
+[ .set3 ( val3 isrom? addr3 -- )
+  psh3
+  [ pop3 drp3 drp3 @___endif_set3 jmp3 ] ?jmp3 drp3
+  pop3 str3
+  .___endif_set3
+return ] drp3
+
+[ .set4 ( val4 isrom? addr3 -- )
+  psh3
+  [ pop3 drp3 drp4 @___endif_set4 jmp3 ] ?jmp3 drp3
+  pop3 str4
+  .___endif_set4
+return ] drp3
 
 ] drp3 ( opened at start of file )
