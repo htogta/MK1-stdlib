@@ -48,4 +48,90 @@ return ] drp3
   @1tobool call ( might as well convert to bool )
 return ] drp3
 
+( roughly calculates the unix timestamp using the functions above )
+( might not be *perfectly* accurate depending on if a second/min/hour etc 
+  rolls over while running this subroutine, but it should be good enough for,
+  say, seeds for PRNGs or for at least telling if two things occurred 
+  consecutively )
+[ .datetime_unix ( -- unixtime32 )
+  [ .datetime_unix_year nop1 nop1 ] drp3
+  @datetime_year call
+  @datetime_unix_year str2
+  
+  ( previous year )
+  [ .datetime_unix_prev_year nop1 nop1 nop1 nop1 ] drp3
+  @datetime_unix_year lod2
+  @2to4 call
+  #00000001 @sub4 call
+  @datetime_unix_prev_year str4
+  
+  ( leap days before this year ) 
+  ( floor((Y-1) / 4) )
+  [ .datetime_unix_leap_days nop1 nop1 nop1 nop1 ] drp3
+  @datetime_unix_prev_year lod4
+  #00000004 @div4 call
+  @datetime_unix_leap_days str4
+  
+  ( subtract floor((Y-1) / 100) )
+  @datetime_unix_prev_year lod4
+  #00000064 @div4 call
+  @datetime_unix_leap_days lod4
+  @sub4 call
+  @datetime_unix_leap_days str4
+  
+  ( add floor((Y-1) / 400) )
+  @datetime_unix_prev_year lod4
+  #00000190 @div4 call
+  @datetime_unix_leap_days lod4
+  add4
+  
+  ( subtract leap days before 1970: 477 )
+  #000001dd @sub4 call
+  @datetime_unix_leap_days str4
+  
+  ( calculate days since the epoch )
+  ( (Y - 1970) * 365 )
+  @datetime_unix_year lod2
+  @2to4 call
+  #000007b2 @sub4 call
+  #0000016d @mul4 call
+  
+  ( add leap days )
+  @datetime_unix_leap_days lod4 add4 
+  
+  ( add 0-based doty )
+  @datetime_doty call
+  @2to4 call
+  add4
+  
+  [ .datetime_unix_days nop1 nop1 nop1 nop1 ] drp3
+  @datetime_unix_days str4
+  
+  ( seconds since midnight ) ( hour * 3600 )
+  @datetime_hour call
+  @1to4 call
+  #00000e10 @mul4 call
+  
+  ( minute * 60 )
+  @datetime_minute call
+  @1to4 call
+  #0000003c @mul4 call
+  
+  add4
+  
+  ( add seconds )
+  @datetime_second call
+  @1to4 call
+  add4
+  
+  [ .datetime_unix_time nop1 nop1 nop1 nop1 ] drp3
+  @datetime_unix_time str4
+  
+  ( days * 86400 + time )
+  @datetime_unix_days lod4
+  #00015180 @mul4 call
+  @datetime_unix_time lod4
+  add4
+return ] drp3
+
 ] drp3 ( opened at start of file )
