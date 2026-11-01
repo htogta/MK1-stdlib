@@ -46,6 +46,145 @@ return ] drp3
   @bitnot4 call
 return ] drp3
 
+( better shift routines )
+[ .lshift1 ( n1 amt1 -- n<<amt1 )
+  dup1 #08 @gteq1 call
+  [ drp1 drp1 #00 return ]
+  [ #40 shf1 shf1 return ] 
+  @choose call
+return ] drp3
+
+[ .rshift1 ( n1 amt1 -- n>>amt1 )
+  dup1 #08 @gteq1 call
+  [ drp1 drp1 #00 return ]
+  [ #0f and1 shf1 return ] 
+  @choose call
+return ] drp3
+
+[ .lshift2 ( n2 amt1 -- n<<amt2 )
+  dup1 #10 @gteq1 call
+  [ drp1 drp2 #0000 return ]
+  [ 
+    #40 shf1 shf2 
+  return ] 
+  @choose call
+return ] drp3
+
+[ .rshift2 ( n2 amt1 -- n>>amt2 )
+  dup1 #10 @gteq1 call
+  [ drp1 drp2 #0000 return ]
+  [ 
+    #0f and1 shf2
+  return ] 
+  @choose call
+return ] drp3
+
+[ .lshift3 ( n3 amt1 -- n<<amt3 )
+  dup1 #18 @gteq1 call
+  [ drp1 drp3 #000000 return ]
+  [ 
+    dup1 #0f @gteq1 call
+    [
+      ( if >= 0f, shift left by 0f, subtract 0f, then shift again by remainder )   
+      ( n3 amt1 )
+      psh1 #0f ( n3 0f ) ( R: amt1 )
+      #40 shf1 shf3 pop1 ( n<<0f_3 amt1 )
+      #0f @sub1 call ( n<<0f_3 amt1-0f )
+      #40 shf1 shf3
+    return ]
+    [
+      ( else just shift by the amt )
+      #40 shf1 shf3
+    return ] @choose call
+  return ] @choose call
+return ] drp3
+
+[ .rshift3 ( n3 amt1 -- n>>amt3 )
+  dup1 #18 @gteq1 call
+  [ drp1 drp3 #000000 return ]
+  [ 
+    dup1 #0f @gteq1 call
+    [ 
+      ( if >= 0f, right shift by 0f, subtract 0f, then shift by remainder )
+      psh1
+      #0f shf3
+      pop1 #0f @sub1 call
+      shf3
+    return ]
+    [ 
+      ( else shift by amt )
+      #0f and1 shf3
+    return ] @choose call
+  return ] 
+  @choose call
+return ] drp3
+
+( TODO left off here )
+[ .lshift4 ( n4 amt1 -- n<<amt4 )
+  dup1 #20 @gteq1 call
+  [ drp1 drp4 #00000000 return ]
+  [
+    dup1 #0f @gteq1 call
+    [
+      ( shift by 15, subtract 15, then check again )
+      psh1 #0f
+      #40 shf1 shf4 pop1
+      #0f @sub1 call
+
+      dup1 #0f @gteq1 call
+      [
+        ( shift by another 15, subtract 15 )
+        psh1 #0f
+        #40 shf1 shf4
+        pop1
+        #0f @sub1 call
+
+        ( shift by the remaining amount )
+        #40 shf1 shf4
+      return ]
+      [
+        ( shift by the remaining amount )
+        #40 shf1 shf4
+      return ] @choose call
+    return ]
+    [
+      ( shift by the amount directly )
+      #40 shf1 shf4
+    return ] @choose call
+  return ] @choose call
+return ] drp3
+
+[ .rshift4 ( n4 amt1 -- n>>amt4 )
+  dup1 #20 @gteq1 call
+  [ drp1 drp4 #00000000 return ]
+  [ 
+    dup1 #0f @gteq1 call
+    [
+      ( if >= 0f, shift left by 0f, subtract 0f, check again )   
+      ( n4 amt1 )
+      psh1 #0f ( n4 0f ) ( R: amt1 )
+      shf4 pop1 ( n<<0f_4 amt1 )
+      #0f @sub1 call ( n<<0f_4 amt1-0f )
+      dup1 #0f @gteq1 call 
+      [
+        ( n4 amt1-0f )
+        psh1 
+        #0f shf4
+        pop1
+        #0f @sub1 call
+        shf4
+      return ]
+      [
+        #0f and1 shf4
+      return ] @choose call
+    return ]
+    [
+      ( else just shift by the amt )
+      #0f and1 shf4
+    return ] @choose call
+  return ] @choose call
+return ] drp3
+
 ( basic math operations )
 
 [ .neg1 ( byte -- -byte )
