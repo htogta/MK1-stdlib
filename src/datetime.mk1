@@ -53,6 +53,8 @@ return ] drp3
   rolls over while running this subroutine, but it should be good enough for,
   say, seeds for PRNGs or for at least telling if two things occurred 
   consecutively )
+( the main inaccuracy involves timezones- right now it returns the seconds 
+  since the unix epoch in your current local time rather than in UTC )
 [ .datetime_unix ( -- unixtime32 )
   [ .datetime_unix_year nop1 nop1 ] drp3
   @datetime_year call
@@ -73,9 +75,9 @@ return ] drp3
   @datetime_unix_leap_days str4
   
   ( subtract floor((Y-1) / 100) )
+  @datetime_unix_leap_days lod4
   @datetime_unix_prev_year lod4
   #00000064 @div4 call
-  @datetime_unix_leap_days lod4
   @sub4 call
   @datetime_unix_leap_days str4
   
@@ -106,7 +108,7 @@ return ] drp3
   
   [ .datetime_unix_days nop1 nop1 nop1 nop1 ] drp3
   @datetime_unix_days str4
-  
+    
   ( seconds since midnight ) ( hour * 3600 )
   @datetime_hour call
   @1to4 call
@@ -132,6 +134,12 @@ return ] drp3
   #00015180 @mul4 call
   @datetime_unix_time lod4
   add4
+return ] drp3
+
+[ .datetime_unix_utc ( offset4 -- unixtime4 )
+  @datetime_unix call ( offset4 unixtime4 )
+  swp4
+  @sub4 call
 return ] drp3
 
 ] drp3 ( opened at start of file )
