@@ -1,0 +1,50 @@
+( this implements a basic 32-bit xorshift algorithm )
+( requires basic.mk1 )
+
+[ ( closed at EOF )
+
+[ .___xorshift_state nop1 nop1 nop1 nop1 ] drp3
+
+[ .random_seed ( seed4 -- err1 )
+  dup4 #00000000 @neq4 call
+  [ @___xorshift_state str4 #00 return ]
+  [ drp4 #ff return ]
+  @choose call
+return ] drp3
+
+[ .random4 ( -- r4 )
+  @___xorshift_state lod4
+  dup4 #0d @lshift4 call xor4
+  dup4 #07 @rshift4 call xor4
+  dup4 #05 @lshift4 call xor4
+  dup4 @___xorshift_state str4
+return ] drp3
+
+( random value in this range, excluding the top, 
+  so 0 4 random_range4 emits values between 0 and 3 )
+[ .random_range4 ( bottom4 top4 -- random4 )
+  [ .___random_range_bottom nop1 nop1 nop1 nop1 ] drp3
+  [ .___random_range_span nop1 nop1 nop1 nop1 ] drp3
+  
+  @___random_range_span str4
+  @___random_range_bottom str4
+
+  ( span = top - bottom )
+  @___random_range_span lod4
+  @___random_range_bottom lod4
+  @sub4 call
+  @___random_range_span str4
+
+  ( r mod span = r - (r / span) * span )
+  @random4 call
+  dup4
+  @___random_range_span lod4 @div4 call
+  @___random_range_span lod4 @mul4 call
+  @sub4 call
+
+  ( shift into range )
+  @___random_range_bottom lod4
+  add4
+return ] drp3
+
+] drp3 ( opened at start of file )

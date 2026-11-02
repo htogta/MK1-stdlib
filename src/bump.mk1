@@ -1,0 +1,26 @@
+( a primitive bump allocator, allocations last the lifetime of the VM )
+
+[ ( closed at EOF )
+
+[ .___heap_ptr nop1 nop1 nop1 ] drp3
+[ .___heap_end nop1 nop1 nop1 ] drp3
+
+[ .heap_init ( start3 end3 -- )
+  @___heap_end str3
+  @___heap_ptr str3
+return ] drp3
+
+( returns address of size bytes, or 0 if error )
+[ .alloc ( size3 -- addr3 )
+  ( if size > end - ptr, then fail )
+  dup3 @___heap_end lod3 @___heap_ptr lod3 @sub3 call @gt3 call
+  [ drp3 #000000 return ]
+  [ @___heap_ptr lod3 add3 @___heap_ptr lod3 swp3 @___heap_ptr str3 return ]
+  @choose call
+return ] drp3
+
+] drp3 ( opened at start of file )
+
+( Our heap starts in RAM here, this *must* be the last line of all the 
+  program files so that we don't overwrite other variables )
+[ .HEAP_START ] drp3
